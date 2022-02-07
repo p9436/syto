@@ -68,23 +68,25 @@ module Syto
       return all if params.blank? || params.empty?
 
       @filter_klass ||= Syto::Base
-      @filter_klass.new(all, params.symbolize_keys, @syto_attrs_map).perform
+      @filter_klass.new(self, all, params.symbolize_keys, @syto_attrs_map).perform
     end
   end
 
   # Base class for filters implementation
   #
   class Base
-    attr_accessor :result, :params
+    attr_accessor :result, :params, :base_class
 
+    # @param [Class] base_class
     # @param [ActiveRecord::Relation] result
     # @param [Hash] params
     # @param [Array] attrs_map
     #
-    def initialize(result, params, attrs_map)
-      @result    = result
-      @params    = params
-      @attrs_map = attrs_map
+    def initialize(base_class, result, params, attrs_map)
+      @base_class = base_class
+      @result     = result
+      @params     = params
+      @attrs_map  = attrs_map
     end
 
     def perform

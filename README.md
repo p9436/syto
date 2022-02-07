@@ -45,10 +45,16 @@ class Post < ActiveModel
 end
 ```
 
+Tip: There are 3 methods available in Syto  for use in `extended_filters`:
+`base_class`, `params` and `result`
+
 ```ruby
 # app/models/concerns/post_filter.rb
 class PostFilters < Syto
   def extended_filters
+    # base_class contains Post
+    return if params[:published].blank?
+
     self.result = result.where(published: params[:published])
     filter_by_range(:published_at, key_from: :pub_from, key_to: :pub_to)
   end
