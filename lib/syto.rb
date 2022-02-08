@@ -98,7 +98,7 @@ module Syto
     end
 
     def extended_filters
-      puts '[WARNING] Filters not defined'
+      puts "[WARNING] Syto filters not defined for #{self.class.name}"
     end
 
     private
@@ -145,11 +145,8 @@ module Syto
     end
 
     def filter_hash_options(attr, options)
-      if options.key?(:key)
-        filter_by_value attr, options
-      else
-        filter_by_range attr, options
-      end
+      filter_by_value attr, options if options.key?(:key)
+      filter_by_range attr, options if options.key?(:key_from) && options.key?(:key_to)
     end
 
     # Filter by single value
