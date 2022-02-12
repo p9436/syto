@@ -3,6 +3,12 @@
 require 'test_helper'
 
 class FilterTest < Minitest::Test
+  def test_attrs_map_setter
+    params = { author: 1 }
+    sql = Comments::Comment.filter_by(params).to_sql
+    assert_equal 'SELECT "comments".* FROM "comments" WHERE "comments"."user_id" = 1', sql
+  end
+
   # Test for `syto_attrs_map :serial_number`
   #
   def test_filter_map_attr_name

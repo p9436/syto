@@ -1,6 +1,6 @@
 # Syto
 
-Simple gem to filter data for ruby on rails models
+Simple and lightweight library to filter data for Ruby on Rails models
 
 ## Installation
 

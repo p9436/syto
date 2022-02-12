@@ -9,6 +9,12 @@ require 'minitest/autorun'
 ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')
 
 ActiveRecord::Schema.define(version: 1) do
+  create_table :comments do |t|
+    t.integer  :user_id
+    t.string   :text
+    t.datetime :created_at
+  end
+
   create_table :entities do |t|
     t.string   :name
     t.string   :color
@@ -22,6 +28,21 @@ ActiveRecord::Schema.define(version: 1) do
     t.string   :serial_number
 
     t.datetime :created_at
+  end
+end
+
+module Comments
+  class Filters < Syto::Base
+    filters_attrs_map user_id: { key: :author },
+                      created_at: { key_from: :date_from, key_to: :date_to }
+
+    # empty method to avoid warning
+    def extended_filters; end
+  end
+
+  class Comment < ActiveRecord::Base
+    include Syto
+    syto_filters_class ::Comments::Filters
   end
 end
 
@@ -44,10 +65,10 @@ module Entities
 
   class Entity < ::ActiveRecord::Base
     include Syto
-    syto_attrs_map :serial_number,
-                   'entities.model_number': :model,
-                   'entities.size_x': { key: :width, case_insensitive: true },
-                   'entities.size_y': { key_from: :height_from, key_to: :height_to }
+    syto_filters_attrs_map :serial_number,
+                           'entities.model_number': :model,
+                           'entities.size_x': { key: :width, case_insensitive: true },
+                           'entities.size_y': { key_from: :height_from, key_to: :height_to }
 
     syto_filters_class ::Entities::Filters
   end

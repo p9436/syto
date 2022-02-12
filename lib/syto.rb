@@ -54,8 +54,14 @@ module Syto
     #
     # @param [Array] attrs_map
     #
-    def syto_attrs_map(*attrs_map)
+    def syto_filters_attrs_map(*attrs_map)
       @syto_attrs_map = attrs_map
+    end
+
+    # Getter for @syto_attrs_map
+    #
+    def attrs_map
+      @syto_attrs_map
     end
 
     # Filtering method
@@ -68,7 +74,7 @@ module Syto
       return all if params.blank? || params.empty?
 
       @filter_klass ||= Syto::Base
-      @filter_klass.new(self, all, params.symbolize_keys, @syto_attrs_map).perform
+      @filter_klass.new(self, all, params.symbolize_keys).perform
     end
   end
 
@@ -80,13 +86,12 @@ module Syto
     # @param [Class] base_class
     # @param [ActiveRecord::Relation] result
     # @param [Hash] params
-    # @param [Array] attrs_map
     #
-    def initialize(base_class, result, params, attrs_map)
+    def initialize(base_class, result, params)
       @base_class = base_class
       @result     = result
       @params     = params
-      @attrs_map  = attrs_map
+      @attrs_map  = (base_class.attrs_map || []) + (self.class.attrs_map || [])
     end
 
     def perform
@@ -99,6 +104,14 @@ module Syto
 
     def extended_filters
       puts "[WARNING] Syto filters not defined for #{self.class.name}"
+    end
+
+    class << self
+      attr_reader :attrs_map
+
+      def filters_attrs_map(*attrs)
+        @attrs_map = attrs
+      end
     end
 
     private
