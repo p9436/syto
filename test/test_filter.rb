@@ -9,6 +9,14 @@ class FilterTest < Minitest::Test
     assert_equal 'SELECT "comments".* FROM "comments" WHERE "comments"."user_id" = 1', sql
   end
 
+  # filters_attrs_map date: { field: :created_at, type: :range, key_from: :start_date, key_to: :end_date }
+  def test_attrs_map_range
+    params = { start_date: '2022-01-01', end_date: '2022-12-31 2022-12-31 23:59:59' }
+    sql = Comments::Comment.filter_by(params).to_sql
+    assert_equal 'SELECT "comments".* FROM "comments" WHERE "comments"."created_at" '\
+                     'BETWEEN \'2022-01-01 00:00:00\' AND \'2022-12-31 23:59:59\'', sql
+  end
+
   # Test for `syto_attrs_map :serial_number`
   #
   def test_filter_map_attr_name
@@ -31,6 +39,14 @@ class FilterTest < Minitest::Test
     params = { width: 50 }
     sql = Entities::Entity.filter_by(params).to_sql
     assert_equal 'SELECT "entities".* FROM "entities" WHERE "entities"."size_x" = 50', sql
+  end
+
+  # Test for `full_name: { field: :'entities.name', case_insensitive: true }`
+  #
+  def test_filter_map_attr_ci
+    params = { full_name: 'Alice' }
+    sql = Entities::Entity.filter_by(params).to_sql
+    assert_equal 'SELECT "entities".* FROM "entities" WHERE LOWER("entities"."name") IN (\'alice\')', sql
   end
 
   # Test for `'entities.size_y': { key_from: :height_from, key_to: :height_to }`
@@ -60,25 +76,25 @@ class FilterTest < Minitest::Test
   end
 
   def test_filter_by_range_between
-    params = { wgt_from: 100, wgt_to: 200 }
+    params = { wgt_gte: 100, wgt_lte: 200 }
     sql = Entities::Entity.filter_by(params).to_sql
     assert_equal 'SELECT "entities".* FROM "entities" WHERE "entities"."weight" BETWEEN 100 AND 200', sql
   end
 
   def test_filter_by_range_gte
-    params = { wgt_from: 100 }
+    params = { wgt_gte: 100 }
     sql = Entities::Entity.filter_by(params).to_sql
     assert_equal 'SELECT "entities".* FROM "entities" WHERE "entities"."weight" >= 100', sql
   end
 
   def test_filter_by_range_lte
-    params = { wgt_to: 200 }
+    params = { wgt_lte: 200 }
     sql = Entities::Entity.filter_by(params).to_sql
     assert_equal 'SELECT "entities".* FROM "entities" WHERE "entities"."weight" <= 200', sql
   end
 
   def test_filter_by_range_str
-    params = { wgt_from: '200', wgt_to: '300' }
+    params = { wgt_gte: '200', wgt_lte: '300' }
     sql = Entities::Entity.filter_by(params).to_sql
     assert_equal 'SELECT "entities".* FROM "entities" WHERE "entities"."weight" BETWEEN 200 AND 300', sql
   end

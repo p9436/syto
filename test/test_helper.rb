@@ -33,8 +33,8 @@ end
 
 module Comments
   class Filters < Syto::Base
-    filters_attrs_map user_id: { key: :author },
-                      created_at: { key_from: :date_from, key_to: :date_to }
+    filters_attrs_map author: :user_id,
+                      date: { field: :created_at, type: :range, key_from: :start_date, key_to: :end_date }
 
     # empty method to avoid warning
     def extended_filters; end
@@ -50,11 +50,11 @@ module Entities
   class Filters < Syto::Base
     def extended_filters
       filter_by_low_price
-      filter_by_value(:name, { key: :name })
-      filter_by_value(:color, { key: :color, case_insensitive: true })
-      filter_by_range(:weight, { key_from: :wgt_from, key_to: :wgt_to })
+      filter_by_value(:name)
+      filter_by_value(:color, { case_insensitive: true })
+      filter_by_range(:wgt, { field: :weight, key_from: :wgt_gte, key_to: :wgt_lte })
+      filter_by_range(:date, { field: :created_at, type: :range })
       filter_by_range(:rate, { key_from: :rate_from, key_to: :rate_to, range_from: 0, range_to: 100 })
-      filter_by_range(:created_at, { key_from: :date_from, key_to: :date_to })
     end
 
     # Custom filter rule
@@ -66,9 +66,10 @@ module Entities
   class Entity < ::ActiveRecord::Base
     include Syto
     syto_filters_attrs_map :serial_number,
-                           'entities.model_number': :model,
-                           'entities.size_x': { key: :width, case_insensitive: true },
-                           'entities.size_y': { key_from: :height_from, key_to: :height_to }
+                           model: :'entities.model_number',
+                           full_name: { field: :name, case_insensitive: true },
+                           width: { field: :'entities.size_x', case_insensitive: true },
+                           height: { field: :'entities.size_y', type: :range }
 
     syto_filters_class ::Entities::Filters
   end

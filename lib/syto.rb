@@ -131,47 +131,56 @@ module Syto
 
     # Filter by attribute
     #
-    # @param [String. Symbol] attr
-    # @param [Hash] params_key
+    # @param [String, Symbol] key
+    # @param [String, Symbol, NilClass] field_name
     #
-    def scalar_filter(attr, params_key = nil)
-      params_key ||= attr
-      params_key = params_key.to_sym
-      return unless @params[params_key]
+    def scalar_filter(key, field_name = nil)
+      return unless @params[key]
 
-      @result = @result.where(attr => @params[params_key])
+      field_name ||= key
+      @result = @result.where(field_name => @params[key])
     end
 
     # Filter by attribute with options
     #
-    # @param [Hash] attrs
+    # @param [Hash] keys
     #
-    def hash_filter(attrs)
-      attrs.each do |attr, options|
+    def hash_filter(keys)
+      keys.each do |key, options|
         case options
         when String, Symbol
-          scalar_filter attr, options
+          scalar_filter key, options
         when Hash
-          filter_hash_options(attr, options)
+          filter_hash_options(key, options)
         end
       end
     end
 
-    def filter_hash_options(attr, options)
-      filter_by_value attr, options if options.key?(:key)
-      filter_by_range attr, options if options.key?(:key_from) && options.key?(:key_to)
+    def filter_hash_options(key, options)
+      puts key
+      puts options
+      if options[:type] == :range
+        filter_by_range key, options
+      else
+        filter_by_value key, options
+      end
     end
 
     # Filter by single value
     #
-    # @param [Symbol] field_name
+    # @param [Symbol] key
     # @param [Hash] options
     #
-    def filter_by_value(field_name, options = {})
+    # available options:
+    # - field
+    # - case_insensitive
+    #
+    def filter_by_value(key, options = {})
+      return unless @params.key?(key)
+
       options ||= {}
 
-      key ||= options[:key] || field_name
-      return unless @params.key?(key)
+      field_name = options[:field] || key
 
       value = @params[key]
 
@@ -184,17 +193,20 @@ module Syto
 
     # Filter by range
     #
-    # @param [Symbol] field_name
+    # @param [Symbol] key
     # @param [Hash{Symbol->Object}] options
     #
-    # options:
+    # available options:
+    # - field
     # - key_from,
     # - key_to,
     #
-    def filter_by_range(field_name, options = {})
-      key_from  = options[:key_from] || :"#{field_name}_from"
-      key_to    = options[:key_to]   || :"#{field_name}_to"
+    def filter_by_range(key, options = {})
+      options ||= {}
 
+      key_from   = options[:key_from] || :"#{key}_from"
+      key_to     = options[:key_to]   || :"#{key}_to"
+      field_name = options[:field]    || key
       value_from = @params[key_from]
       value_to   = @params[key_to]
 

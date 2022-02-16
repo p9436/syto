@@ -28,10 +28,12 @@ Define filters for attributes `country`, `area_id` and `rate`
 # app/model/user.rb
 class User < ActiveModel
   include Syto
-  syto_attrs_map :active, 
-                 country: { key: :country, case_insensitive: true }, # allows to filter by 'users.country'
-                 area_id: { key: :region },                          # allows to filter by 'users.area_id' as 'region'
-                 rate: { key_from: :rate_from, key_to: :rate_to }    # allows to filter by 'users.rate' with range
+  syto_attrs_map :active,                             # filter by users.active
+                 country: { case_insensitive: true }, # allows to filter by 'users.country'
+                 region: { field: :area_id },         # allows to filter by 'users.area_id' with "region" key in params 
+                 rate: { type: :range },              # allows to filter by 'users.rate' with "rate_from" and "rate_to" keys in params
+                 date: { type: :range, field: :created_at,        
+                         key_from: :start_date, key_to: :end_date } # filter by 'users.created_at'
 end
 ```
 
@@ -51,12 +53,17 @@ Tip: There are 3 methods available in Syto  for use in `extended_filters`:
 ```ruby
 # app/models/concerns/post_filter.rb
 class PostFilters < Syto
+    # map for converting params { author: 52, strat_date: '2020-01-01', end_date: '2021-12-31' }
+    # to query like WHERE user_id = 52 AND created_at BETWEEN '2020-01-01' AND '2021-12-31'
+    filters_attrs_map author: :user_id,
+                      date: { field: :created_at, type: :range, key_from: :start_date, key_to: :end_date }
+    
   def extended_filters
     # base_class contains Post
     return if params[:published].blank?
 
     self.result = result.where(published: params[:published])
-    filter_by_range(:published_at, key_from: :pub_from, key_to: :pub_to)
+    filter_by_range(:published, field: :published_at, key_from: :pub_from, key_to: :pub_to)
   end
 end
 ```
@@ -64,12 +71,17 @@ end
 Use in code:
 
 ```ruby
+params = { author: 21, start_date: '2022-01-01' }
+User.filter_by(params) # where user_id = 21 and created_at >= '2022-01-01'
+```
+
+```ruby
 params = { country: 'UA', rate_from: 2, rate_to: 3 }
 User.filter_by(params)
 ```
 
 ```ruby
-params = { published: true, pub_from: '2021-01-01' }
+params = { pub_from: '2021-01-01' }
 Post.filter_by(params) # select published posts from 2021
 ```
 
