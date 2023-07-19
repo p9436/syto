@@ -22,7 +22,7 @@ Or install it yourself as:
 
 Initialize Syto in AR model 
 
-Define filters for attributes `country`, `area_id` and `rate`
+Option 1: Define filters for attributes `country`, `area_id` and `rate`
 
 ```ruby
 # app/model/user.rb
@@ -37,7 +37,7 @@ class User < ActiveModel
 end
 ```
 
-Define custom filters in class
+Option 2: Define custom filters in a class
 
 ```ruby
 # app/models/post.rb
